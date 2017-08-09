@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <headers></headers>
+    <headers :seller="seller"></headers>
     <div class="tab">
       <div class="tab-item border-1px" >
         <router-link to="/goods">商品</router-link>
@@ -22,13 +22,26 @@ export default {
   name: 'app',
   components: {
     Headers
+  },
+  data () {
+    return {
+      seller: {}
+    }
+  },
+  created () {
+    this.$axios.get('http://118.184.85.83:8082/seller')
+    .then((res) => {
+      if (res.status === 200) {
+        this.seller = res.data[0].seller
+        console.log(this.seller)
+      }
+    })
   }
 }
 </script>
 
 <style scope lang="less">
-@import './common/less/mixin';
-
+@import './common/less/index';
 #app {
   .tab {
     display: flex;
