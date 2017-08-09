@@ -9,7 +9,7 @@ Vue.prototype.$axios = axios
 
 Vue.config.productionTip = false
 
-require('!style-loader!css-loader!less-loader!./common/less/index.less')
+// require('!style-loader!css-loader!less-loader!./common/less/index.less')
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
