@@ -2,7 +2,7 @@
   <div class="goods">
     <div class="muen-wrapper" ref="muenWrapper">
       <ul>
-        <li v-for="item in goods" class="muen-item">
+        <li v-for="(item, index) in goods" class="muen-item" :class="{ 'current' :currentIndex===index}" @click="selectMenu(index, $event)">
           <span class="text border-1p">
             <span v-show="item.type > 0" class="icon" :class="classMap[item.type]"></span>{{ item.name }}
           </span>
@@ -10,8 +10,8 @@
       </ul>
     </div>
     <div class="foods-wrapper" ref="foodsWrapper">
-      <ul>
-        <li v-for="item in goods" class="food-list">
+      <ul id="foods-ul">
+        <li v-for="item in goods" class="food-list food-list-hook">
           <h1 class="title">{{ item.name }}</h1>
           <ul>
             <li v-for="food in item.foods" class="food-item border-1px">
@@ -22,10 +22,12 @@
                 <h2 class="name">{{ food.name }}</h2>
                 <p class="desc">{{ food.description }}</p>
                 <div class="extra">
-                  <span class="count">月售{{ food.sellCount }}份</span><span>好评率{{ food.rating }}%</span>
+                  <span class="count">月售{{ food.sellCount }}份</span>
+                  <span>好评率{{ food.rating }}%</span>
                 </div>
                 <div class="price">
-                  <span class="now">¥{{ food.price }}</span><span class="old" v-show="food.oldPrice">¥{{ food.oldPrice }}</span>
+                  <span class="now">¥{{ food.price }}</span>
+                  <span class="old" v-show="food.oldPrice">¥{{ food.oldPrice }}</span>
                 </div>
               </div>
             </li>
@@ -33,38 +35,54 @@
         </li>
       </ul>
     </div>
+    <Shopcart></Shopcart>
   </div>
 </template>
 
 <script>
 import BScroll from 'better-scroll'
+import Shopcart from '../shopcart/Shopcart'
 export default {
   props: {
     seller: {
       type: Object
     }
   },
-  data () {
+  components: {
+    Shopcart
+  },
+  data() {
     return {
-      goods: []
+      goods: [],
+      listHeight: [],
+      scrollY: 0
     }
   },
-  created () {
+  created() {
     this.classMap = ['decrease', 'discount', 'guarantee', 'invoice', 'special']
     this.$axios.get('http://118.184.85.83:8082/goods')
       .then((res) => {
         if (res.status === 200) {
           this.goods = res.data[0].goods
+          this.$nextTick(() => {
+            this._initScroll()
+            this._calculateHeight()
+          })
         }
       })
   },
-  mounted () {
-    this.$nextTick(() => {
-      this._initScroll()
-    })
-  },
   methods: {
-    _initScroll () {
+    // 点击导航滚动到相应的列表
+    selectMenu(index, $event) {
+      if (!$event._constructed) {
+        return
+      }
+      let foodList = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook')
+      let el = foodList[index]
+      this.foodsScroll.scrollToElement(el, 300)
+    },
+    _initScroll() {
+      // BScroll插件调用
       this.meunScroll = new BScroll(this.$refs.muenWrapper, {
         click: true
       })
@@ -72,6 +90,33 @@ export default {
         click: true,
         probeType: 3
       })
+      // 调用方法获取实时滚动Y值
+      this.foodsScroll.on('scroll', (pos) => {
+        this.scrollY = Math.abs(Math.round(pos.y))
+      })
+    },
+    _calculateHeight() {
+      // 获取每个li的高度
+      let foodList = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook')
+      let height = 0
+      this.listHeight.push(height)
+      for (let i = 0; i < foodList.length; i++) {
+        let item = foodList[i]
+        height += item.clientHeight
+        this.listHeight.push(height)
+      }
+    }
+  },
+  computed: {
+    currentIndex() {
+      for (let i = 0; i < this.listHeight.length; i++) {
+        let height1 = this.listHeight[i]
+        let height2 = this.listHeight[i + 1]
+        if (!height2 || (this.scrollY >= height1 && this.scrollY < height2)) {
+          return i
+        }
+      }
+      return 0
     }
   }
 }
@@ -88,10 +133,9 @@ export default {
   .muen-wrapper {
     flex: 0 0 80px;
     width: 80px;
-    background: #f3f5f7;
-    ul{
-      height: 504px;
-    }
+    background: #f3f5f7; // ul{
+    //   height: 504px;
+    // }
     .muen-item {
       display: table;
       height: 54px;
@@ -99,6 +143,16 @@ export default {
       line-height: 14px;
       font-size: 14px;
       padding: 0 12px;
+      &.current {
+        position: relative;
+        z-index: 10;
+        margin-top: -1px;
+        background: #fff;
+        font-weight: 700;
+        .text {
+          .border-none();
+        }
+      }
       .icon {
         display: inline-block;
         vertical-align: top;
