@@ -1,47 +1,56 @@
 <template>
-  <div class="goods">
-    <div class="muen-wrapper" ref="muenWrapper">
-      <ul>
-        <li v-for="(item, index) in goods" class="muen-item" :class="{ 'current' :currentIndex===index}" @click="selectMenu(index, $event)">
-          <span class="text border-1p">
-            <span v-show="item.type > 0" class="icon" :class="classMap[item.type]"></span>{{ item.name }}
-          </span>
-        </li>
-      </ul>
-    </div>
-    <div class="foods-wrapper" ref="foodsWrapper">
-      <ul id="foods-ul">
-        <li v-for="item in goods" class="food-list food-list-hook">
-          <h1 class="title">{{ item.name }}</h1>
-          <ul>
-            <li v-for="food in item.foods" class="food-item border-1px">
-              <div class="icon">
-                <img :src="food.icon" width="57" height="57" alt="">
-              </div>
-              <div class="content">
-                <h2 class="name">{{ food.name }}</h2>
-                <p class="desc">{{ food.description }}</p>
-                <div class="extra">
-                  <span class="count">月售{{ food.sellCount }}份</span>
-                  <span>好评率{{ food.rating }}%</span>
+  <div>
+  
+    <div class="goods">
+      <div class="muen-wrapper" ref="muenWrapper">
+        <ul>
+          <li v-for="(item, index) in goods" class="muen-item" :class="{ 'current' :currentIndex===index}" @click="selectMenu(index, $event)">
+            <span class="text border-1p">
+              <span v-show="item.type > 0" class="icon" :class="classMap[item.type]"></span>{{ item.name }}
+            </span>
+          </li>
+        </ul>
+      </div>
+      <div class="foods-wrapper" ref="foodsWrapper">
+        <ul id="foods-ul">
+          <li v-for="item in goods" class="food-list food-list-hook">
+            <h1 class="title">{{ item.name }}</h1>
+            <ul>
+              <li @click="selectFood(food,$event)" v-for="food in item.foods" class="food-item border-1px">
+                <div class="icon">
+                  <img :src="food.icon" width="57" height="57" alt="">
                 </div>
-                <div class="price">
-                  <span class="now">¥{{ food.price }}</span>
-                  <span class="old" v-show="food.oldPrice">¥{{ food.oldPrice }}</span>
+                <div class="content">
+                  <h2 class="name">{{ food.name }}</h2>
+                  <p class="desc">{{ food.description }}</p>
+                  <div class="extra">
+                    <span class="count">月售{{ food.sellCount }}份</span>
+                    <span>好评率{{ food.rating }}%</span>
+                  </div>
+                  <div class="price">
+                    <span class="now">¥{{ food.price }}</span>
+                    <span class="old" v-show="food.oldPrice">¥{{ food.oldPrice }}</span>
+                  </div>
+                  <div class="cartcontrol-wrapper">
+                    <Cartcontrol :food="food"></Cartcontrol>
+                  </div>
                 </div>
-              </div>
-            </li>
-          </ul>
-        </li>
-      </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <Shopcart :select-foods="selectFoods" :delivery-price="seller.deliveryPrice" :min-price="seller.minPrice"></Shopcart>
     </div>
-    <Shopcart></Shopcart>
+    <food :food="selectedFood"></food>
   </div>
 </template>
-
+  
 <script>
 import BScroll from 'better-scroll'
 import Shopcart from '../shopcart/Shopcart'
+import Cartcontrol from '../cartcontrol/Cartcontrol'
+import Food from '../food/food'
 export default {
   props: {
     seller: {
@@ -49,13 +58,16 @@ export default {
     }
   },
   components: {
-    Shopcart
+    Shopcart,
+    Cartcontrol,
+    Food
   },
   data() {
     return {
       goods: [],
       listHeight: [],
-      scrollY: 0
+      scrollY: 0,
+      selectedFood: {}
     }
   },
   created() {
@@ -80,6 +92,12 @@ export default {
       let foodList = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook')
       let el = foodList[index]
       this.foodsScroll.scrollToElement(el, 300)
+    },
+    selectFood(food, e) {
+      if (!e._constructed) {
+        return
+      }
+      this.selectedFood = food
     },
     _initScroll() {
       // BScroll插件调用
@@ -117,6 +135,17 @@ export default {
         }
       }
       return 0
+    },
+    selectFoods() {
+      let foods = []
+      this.goods.forEach((good) => {
+        good.foods.forEach((food) => {
+          if (food.count) {
+            foods.push(food)
+          }
+        })
+      })
+      return foods
     }
   }
 }
@@ -247,6 +276,11 @@ export default {
             font-size: 10px;
             color: rgb(147, 153, 159);
           }
+        }
+        .cartcontrol-wrapper {
+          position: absolute;
+          right: 0px;
+          bottom: 12px;
         }
       }
     }

@@ -22,34 +22,34 @@ var proxyTable = config.dev.proxyTable
 //定义数据
 var app = express()
 var appData = require('../data')
-// var seller = appData.seller
-// var goods = appData.goods
-// var ratings = appData.ratings
+var seller = appData.seller
+var goods = appData.goods
+var ratings = appData.ratings
 
-// //定义数据接口
-// var apiRoutes = express.Router();
-// apiRoutes.get('/seller',function (req, res) {
-//   res.json({
-//     errno:0,
-//     data:seller
-//   })
-// })
+//定义数据接口
+var apiRoutes = express.Router();
+apiRoutes.get('/seller',function (req, res) {
+  res.json({
+    errno:0,
+    data:seller
+  })
+})
 
-// apiRoutes.get('/goods',function (req,res) {
-//   res.json({
-//     errno:0,
-//     data:goods
-//   })
-// })
+apiRoutes.get('/goods',function (req,res) {
+  res.json({
+    errno:0,
+    data:goods
+  })
+})
 
-// apiRoutes.get('/ratings',function (req,res) {
-//   res.json({
-//     errno:0,
-//     data:ratings
-//   })
-// })
+apiRoutes.get('/ratings',function (req,res) {
+  res.json({
+    errno:0,
+    data:ratings
+  })
+})
 
-// app.use('/api',apiRoutes)
+app.use('/api',apiRoutes)
 
 
 var compiler = webpack(webpackConfig)
