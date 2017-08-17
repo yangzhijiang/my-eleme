@@ -1,6 +1,5 @@
 <template>
   <div>
-  
     <div class="goods">
       <div class="muen-wrapper" ref="muenWrapper">
         <ul>
@@ -32,7 +31,7 @@
                     <span class="old" v-show="food.oldPrice">¥{{ food.oldPrice }}</span>
                   </div>
                   <div class="cartcontrol-wrapper">
-                    <Cartcontrol :food="food"></Cartcontrol>
+                    <Cartcontrol @add="drop" :food="food"></Cartcontrol>
                   </div>
                 </div>
               </li>
@@ -40,9 +39,9 @@
           </li>
         </ul>
       </div>
-      <Shopcart :select-foods="selectFoods" :delivery-price="seller.deliveryPrice" :min-price="seller.minPrice"></Shopcart>
+      <Shopcart ref="shopcart" :select-foods="selectFoods" :delivery-price="seller.deliveryPrice" :min-price="seller.minPrice"></Shopcart>
     </div>
-    <food :food="selectedFood"></food>
+    <food @add="drop" :food="selectedFood" ref="food"></food>
   </div>
 </template>
   
@@ -84,6 +83,12 @@ export default {
       })
   },
   methods: {
+    drop(target) {
+      // 体验优化，异步执行下落动画
+      this.$nextTick(() => {
+        this.$refs.shopcart.drop(target)
+      })
+    },
     // 点击导航滚动到相应的列表
     selectMenu(index, $event) {
       if (!$event._constructed) {
@@ -98,6 +103,7 @@ export default {
         return
       }
       this.selectedFood = food
+      this.$refs.food.show()
     },
     _initScroll() {
       // BScroll插件调用
@@ -162,9 +168,7 @@ export default {
   .muen-wrapper {
     flex: 0 0 80px;
     width: 80px;
-    background: #f3f5f7; // ul{
-    //   height: 504px;
-    // }
+    background: #f3f5f7;
     .muen-item {
       display: table;
       height: 54px;
